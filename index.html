@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji CAPTCHA</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .captcha-container {
+            text-align: center;
+        }
+        .captcha-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 5px;
+            margin-top: 20px;
+        }
+        .captcha-square {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .captcha-square.selected {
+            border-color: blue;
+            background-color: lightblue;
+        }
+        .captcha-instructions {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #check-button, #skip-button {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #check-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        #skip-button {
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="captcha-container">
+        <div class="captcha-instructions">
+            Select all squares with 🍎
+        </div>
+        <div class="captcha-grid" id="captcha-grid">
+            <!-- Kwadraty captcha będą generowane dynamicznie -->
+        </div>
+        <button id="check-button">Check</button>
+        <button id="skip-button">Skip</button>
+        <p id="result-message"></p>
+    </div>
+
+    <script>
+        const emojiToSelect = '🍎'; // Emoji, które użytkownik ma wybrać
+        const allEmojis = ['🍎', '🍌', '🍇', '🍉', '🍒', '🍓', '🍍', '🍑', '🍊', '🍋', '🍈', '🥭', '🍐']; // Lista różnych emoji
+        const grid = document.getElementById('captcha-grid');
+        const resultMessage = document.getElementById('result-message');
+        
+        let correctSquares = [];
+
+        // Funkcja do generowania kwadratów z emoji
+        function generateCaptcha() {
+            grid.innerHTML = ''; // Wyczyść grid
+            correctSquares = []; // Zresetuj poprzednią tablicę z poprawnymi kwadratami
+            
+            for (let i = 0; i < 16; i++) {
+                const square = document.createElement('div');
+                square.classList.add('captcha-square');
+                
+                // Losuj emoji
+                const randomEmoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+                square.textContent = randomEmoji;
+
+                // Zapisz indeksy poprawnych emoji
+                if (randomEmoji === emojiToSelect) {
+                    correctSquares.push(i);
+                }
+
+                // Dodaj event listener do wyboru kwadratu
+                square.addEventListener('click', () => {
+                    square.classList.toggle('selected');
+                });
+
+                grid.appendChild(square);
+            }
+        }
+
+        // Sprawdź, czy użytkownik poprawnie zaznaczył wszystkie emoji
+        document.getElementById('check-button').addEventListener('click', () => {
+            const selectedSquares = document.querySelectorAll('.captcha-square.selected');
+            let correctSelection = true;
+
+            selectedSquares.forEach((square, index) => {
+                if (!correctSquares.includes(index)) {
+                    correctSelection = false;
+                }
+            });
+
+            if (correctSelection && selectedSquares.length === correctSquares.length) {
+                resultMessage.textContent = 'Correct!';
+                resultMessage.style.color = 'green';
+            } else {
+                resultMessage.textContent = 'Incorrect, try again.';
+                resultMessage.style.color = 'red';
+                generateCaptcha(); // Generuj nową captcha po błędzie
+            }
+        });
+
+        // Odśwież captcha przy kliknięciu "Skip"
+        document.getElementById('skip-button').addEventListener('click', generateCaptcha);
+
+        // Generuj captcha przy pierwszym załadowaniu strony
+        generateCaptcha();
+    </script>
+</body>
+</html>
